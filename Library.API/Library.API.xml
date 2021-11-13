@@ -32,6 +32,15 @@
             </remarks>
             \ -> for New Line
         </member>
+        <member name="M:Library.API.Controllers.BooksController.GetBook(System.Guid,System.Guid)">
+            <summary>
+            Get a Book by Id for a Specific Author
+            </summary>
+            <param name="authorId">The Id of the Book Author</param>
+            <param name="bookId">The Id of the Book</param>
+            <returns>An Action Result of Type Book</returns>
+            <response code="200">Returns the Requested Book</response>
+        </member>
         <member name="T:Library.API.Models.Author">
             <summary>
             An Author with Id, FirstName and LastName Fields
