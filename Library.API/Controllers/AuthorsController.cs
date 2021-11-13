@@ -40,6 +40,9 @@ namespace Library.API.Controllers
         /// <returns>An ActionResult of Type Author</returns>
         /// Old return Comment: An Author with Id, FirstName and LastName Fields
         [HttpGet("{authorId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<Author>> GetAuthor(
             Guid authorId)
         {
@@ -95,6 +98,10 @@ namespace Library.API.Controllers
         /// </remarks>
         /// \ -> for New Line
         [HttpPatch("{authorId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<Author>> UpdateAuthor(
             Guid authorId,
             JsonPatchDocument<AuthorForUpdate> patchDocument)
