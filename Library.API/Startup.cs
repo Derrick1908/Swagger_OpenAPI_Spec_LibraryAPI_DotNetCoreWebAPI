@@ -83,10 +83,22 @@ namespace Library.API
             services.AddSwaggerGen(setupAction =>
             {
                 setupAction.SwaggerDoc("LibraryOpenAPISpecification", 
-                    new Microsoft.OpenApi.Models.OpenApiInfo()
+                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the API
                     {
                         Title = "Library API",
-                        Version = "1"
+                        Version = "1",
+                        Description = "Through this API you can access authors and their books.",
+                        Contact = new Microsoft.OpenApi.Models.OpenApiContact()
+                        {
+                            Email = "derekvenom@gmail.com",
+                            Name = "Derrick Nazareth",
+                            Url = new Uri("https://www.twitter.com/derekvenom")
+                        },
+                        License = new Microsoft.OpenApi.Models.OpenApiLicense()
+                        {
+                            Name = "MIT License",
+                            Url = new Uri("https://opensource.org/licenses/MIT")
+                        }
                     });
 
                 var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
