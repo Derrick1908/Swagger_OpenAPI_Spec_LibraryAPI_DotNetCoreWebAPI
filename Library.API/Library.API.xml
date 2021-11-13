@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Library.API</name>
+    </assembly>
+    <members>
+        <member name="M:Library.API.Controllers.AuthorsController.GetAuthor(System.Guid)">
+            <summary>
+            Gets an Author by his/her Id
+            </summary>
+            <param name="authorId">The Id of the Author you want to Retrieve</param>
+            <returns>An ActionResult of Type Author</returns>
+            Old return Comment: An Author with Id, FirstName and LastName Fields
+        </member>
+        <member name="T:Library.API.Models.Author">
+            <summary>
+            An Author with Id, FirstName and LastName Fields
+            </summary>
+        </member>
+        <member name="P:Library.API.Models.Author.Id">
+            <summary>
+            The Id of the Author
+            </summary>
+        </member>
+        <member name="P:Library.API.Models.Author.FirstName">
+            <summary>
+            The First Name of the Author
+            </summary>
+        </member>
+        <member name="P:Library.API.Models.Author.LastName">
+            <summary>
+            The Last Name of the Author
+            </summary>
+        </member>
+    </members>
+</doc>
