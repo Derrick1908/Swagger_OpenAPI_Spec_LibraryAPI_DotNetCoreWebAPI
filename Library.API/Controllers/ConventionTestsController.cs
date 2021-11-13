@@ -10,7 +10,8 @@ namespace Library.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[ApiConventionType(typeof(DefaultApiConventions))]              //Api Conventions applied to the Entire Controller only. Note that ProducesResponseTypeAttribute values in Startup.cs  override these default convention types
+    //[ApiConventionType(typeof(DefaultApiConventions))]            //Api Conventions applied to the Entire Controller only. Note that ProducesResponseTypeAttribute values in Startup.cs  override these default convention types
+    [ApiConventionType(typeof(CustomConventions))]                  //Applying the Custom Api Conventions to the Entire Controller only. 
     public class ConventionTestsController : ControllerBase
     {
         // GET: api/<ConventionTestsController>
@@ -30,7 +31,8 @@ namespace Library.API.Controllers
 
         // POST api/<ConventionTestsController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        //[ApiConventionMethod(typeof(CustomConventions),nameof(CustomConventions.Insert))]           //Using a Custom Cretaed Convention
+        public void InsertTest([FromBody] string value)
         {
         }
 
