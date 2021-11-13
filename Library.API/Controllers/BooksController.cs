@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
+using Library.API.Attributes;
 using Library.API.Models;
 using Library.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Library.API.Controllers
 {
+    [Produces("application/json","application/xml")]        //This Overwrites any Defaults set at the Startup Level.
     [Route("api/authors/{authorId}/books")]
     [ApiController]   
     public class BooksController : ControllerBase
@@ -27,6 +30,11 @@ namespace Library.API.Controllers
             _mapper = mapper;
         }
        
+        /// <summary>
+        /// Gets the Books for a Specific Author
+        /// </summary>
+        /// <param name="authorId">The Id of the Book Author</param>
+        /// <returns>An ActionResult of Type IEnumerable of Book</returns>
         [HttpGet()]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,9 +58,13 @@ namespace Library.API.Controllers
         /// <param name="bookId">The Id of the Book</param>
         /// <returns>An Action Result of Type Book</returns>
         /// <response code="200">Returns the Requested Book</response>
+        [HttpGet("{bookId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpGet("{bookId}")]
+        [Produces("application/vnd.marvin.book+json")]      //This Overrides any Deafult Levels set either at the Controller Level or at the Defautls Statup Level
+        [RequestHeaderMatchesMediaType(HeaderNames.Accept,
+            "application/json",
+            "application/vnd.marvin.books+json")]
         public async Task<ActionResult<Book>> GetBook(
             Guid authorId,
             Guid bookId)
@@ -72,10 +84,20 @@ namespace Library.API.Controllers
         }
 
 
+        /// <summary>
+        /// Creates a Book for a Specific Author
+        /// </summary>
+        /// <param name="authorId">The Id of the Author Book</param>
+        /// <param name="bookForCreation">The Book to Create</param>
+        /// <returns>An Action Result of Type Book</returns>
+        /// <response code="422">Validation Error</response>
         [HttpPost()]
+        [Consumes("application/json", "application/vnd.marvin.book+json")]
+        [RequestHeaderMatchesMediaType(HeaderNames.ContentType,
+           "application/json", "application/vnd.marvin.bookforcreation+json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesDefaultResponseType]
+        [ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary),StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<Book>> CreateBook(
             Guid authorId,
             [FromBody] BookForCreation bookForCreation)

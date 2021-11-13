@@ -4,6 +4,12 @@
         <name>Library.API</name>
     </assembly>
     <members>
+        <member name="M:Library.API.Controllers.AuthorsController.GetAuthors">
+            <summary>
+            Gets a List of Authors
+            </summary>
+            <returns>An Action Result of Type IEnumerable of Author</returns>
+        </member>
         <member name="M:Library.API.Controllers.AuthorsController.GetAuthor(System.Guid)">
             <summary>
             Gets an Author by his/her Id
@@ -11,6 +17,15 @@
             <param name="authorId">The Id of the Author you want to Retrieve</param>
             <returns>An ActionResult of Type Author</returns>
             Old return Comment: An Author with Id, FirstName and LastName Fields
+        </member>
+        <member name="M:Library.API.Controllers.AuthorsController.UpdateAuthor(System.Guid,Library.API.Models.AuthorForUpdate)">
+            <summary>
+            Updates an Author
+            </summary>
+            <param name="authorId">The Id of the Author to Update</param>
+            <param name="authorForUpdate">The Author with Updated Values</param>
+            <returns>An ActionResult of type Author</returns>
+            <response code="422">Validation Error</response>
         </member>
         <member name="M:Library.API.Controllers.AuthorsController.UpdateAuthor(System.Guid,Microsoft.AspNetCore.JsonPatch.JsonPatchDocument{Library.API.Models.AuthorForUpdate})">
             <summary>
@@ -30,7 +45,15 @@
                 }   \
             ]   
             </remarks>
-            \ -> for New Line
+            <response code="200">Returns the Updated Author</response>
+            Note that the Backslash Character '\' -> is used for New Line
+        </member>
+        <member name="M:Library.API.Controllers.BooksController.GetBooks(System.Guid)">
+            <summary>
+            Gets the Books for a Specific Author
+            </summary>
+            <param name="authorId">The Id of the Book Author</param>
+            <returns>An ActionResult of Type IEnumerable of Book</returns>
         </member>
         <member name="M:Library.API.Controllers.BooksController.GetBook(System.Guid,System.Guid)">
             <summary>
@@ -40,6 +63,15 @@
             <param name="bookId">The Id of the Book</param>
             <returns>An Action Result of Type Book</returns>
             <response code="200">Returns the Requested Book</response>
+        </member>
+        <member name="M:Library.API.Controllers.BooksController.CreateBook(System.Guid,Library.API.Models.BookForCreation)">
+            <summary>
+            Creates a Book for a Specific Author
+            </summary>
+            <param name="authorId">The Id of the Author Book</param>
+            <param name="bookForCreation">The Book to Create</param>
+            <returns>An Action Result of Type Book</returns>
+            <response code="422">Validation Error</response>
         </member>
         <member name="T:Library.API.Models.Author">
             <summary>

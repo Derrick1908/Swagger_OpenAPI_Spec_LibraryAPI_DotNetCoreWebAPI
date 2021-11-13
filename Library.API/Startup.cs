@@ -13,7 +13,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-[assembly: ApiConventionType(typeof(DefaultApiConventions))]            //Adds the Deafult API Conventions to all Controllers in the Project. These can be overriden by ProducesResponseType Attribute
+//[assembly: ApiConventionType(typeof(DefaultApiConventions))]            //Adds the Deafult API Conventions to all Controllers in the Project. These can be overriden by ProducesResponseType Attribute
 
 namespace Library.API
 {
@@ -32,11 +32,13 @@ namespace Library.API
             services.AddMvc(setupAction =>
             {
                 //Adds these 3 Response Types as Default to all API Methods of both the API Controllers.
-                //setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
-                //setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status406NotAcceptable));
-                //setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status500InternalServerError));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status406NotAcceptable));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status500InternalServerError));
 
-                setupAction.ReturnHttpNotAcceptable = true;
+                setupAction.ReturnHttpNotAcceptable = true;     //This is used to return an Error incase the Accept Header Type in Response is not supported
+
+                setupAction.OutputFormatters.Add(new XmlSerializerOutputFormatter());
 
                 var jsonOutputFormatter = setupAction.OutputFormatters
                     .OfType<JsonOutputFormatter>().FirstOrDefault();
@@ -58,7 +60,7 @@ namespace Library.API
             // it's better to store the connection string in an environment variable)
             var connectionString = Configuration["ConnectionStrings:LibraryDBConnectionString"];
             services.AddDbContext<LibraryContext>(o => o.UseSqlServer(connectionString));
-            
+
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = actionContext =>
@@ -87,7 +89,7 @@ namespace Library.API
 
             services.AddSwaggerGen(setupAction =>
             {
-                setupAction.SwaggerDoc("LibraryOpenAPISpecification", 
+                setupAction.SwaggerDoc("LibraryOpenAPISpecification",
                     new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the API
                     {
                         Title = "Library API",

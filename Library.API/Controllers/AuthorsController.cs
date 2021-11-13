@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 namespace Library.API.Controllers
 {
 
+    [Produces("application/json","application/xml")]            //This Overwrites any Defaults set at the Startup Level.
     [Route("api/authors")]
     [ApiController]
     public class AuthorsController : ControllerBase
@@ -26,7 +27,12 @@ namespace Library.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Gets a List of Authors
+        /// </summary>
+        /// <returns>An Action Result of Type IEnumerable of Author</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<Author>>> GetAuthors()
         {
             var authorsFromRepo = await _authorsRepository.GetAuthorsAsync();
@@ -55,10 +61,19 @@ namespace Library.API.Controllers
             return Ok(_mapper.Map<Author>(authorFromRepo));
         }
 
+        /// <summary>
+        /// Updates an Author
+        /// </summary>
+        /// <param name="authorId">The Id of the Author to Update</param>
+        /// <param name="authorForUpdate">The Author with Updated Values</param>
+        /// <returns>An ActionResult of type Author</returns>
+        /// <response code="422">Validation Error</response>
         [HttpPut("{authorId}")]
+        [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity,
+            Type = typeof(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary))]
         public async Task<ActionResult<Author>> UpdateAuthor(
             Guid authorId,
             AuthorForUpdate authorForUpdate)
@@ -96,12 +111,13 @@ namespace Library.API.Controllers
         ///     }   \
         /// ]   
         /// </remarks>
-        /// \ -> for New Line
+        /// <response code="200">Returns the Updated Author</response>
+        /// Note that the Backslash Character '\' -> is used for New Line
+        [Consumes("application/json-patch+json")]
         [HttpPatch("{authorId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary), StatusCodes.Status422UnprocessableEntity)]
-        [ProducesDefaultResponseType]
+        [ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary), StatusCodes.Status422UnprocessableEntity)]        
         public async Task<ActionResult<Author>> UpdateAuthor(
             Guid authorId,
             JsonPatchDocument<AuthorForUpdate> patchDocument)
