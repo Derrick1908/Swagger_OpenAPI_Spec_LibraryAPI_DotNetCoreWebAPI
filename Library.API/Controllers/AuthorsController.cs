@@ -13,6 +13,7 @@ namespace Library.API.Controllers
 
     [Produces("application/json","application/xml")]            //This Overwrites any Defaults set at the Startup Level.
     [Route("api/authors")]
+    [ApiExplorerSettings(GroupName = "LibraryOpenAPISpecificationAuthors")]
     [ApiController]
     public class AuthorsController : ControllerBase
     {

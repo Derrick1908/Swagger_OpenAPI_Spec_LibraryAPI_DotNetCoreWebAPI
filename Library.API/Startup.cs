@@ -89,12 +89,31 @@ namespace Library.API
 
             services.AddSwaggerGen(setupAction =>
             {
-                setupAction.SwaggerDoc("LibraryOpenAPISpecification",
-                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the API
+                //The Open API Specification has been split into Two OpenAPI Specifications one for the Authors and one for the Books
+                setupAction.SwaggerDoc("LibraryOpenAPISpecificationAuthors",
+                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the Authors API Specification
                     {
-                        Title = "Library API",
+                        Title = "Library API (Authors)",
                         Version = "1",
-                        Description = "Through this API you can access authors and their books.",
+                        Description = "Through this API you can access the authors.",
+                        Contact = new Microsoft.OpenApi.Models.OpenApiContact()
+                        {
+                            Email = "derekvenom@gmail.com",
+                            Name = "Derrick Nazareth",
+                            Url = new Uri("https://www.twitter.com/derekvenom")
+                        },
+                        License = new Microsoft.OpenApi.Models.OpenApiLicense()
+                        {
+                            Name = "MIT License",
+                            Url = new Uri("https://opensource.org/licenses/MIT")
+                        }
+                    });
+                setupAction.SwaggerDoc("LibraryOpenAPISpecificationBooks",
+                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the Books API Specification
+                    {
+                        Title = "Library API (Books)",
+                        Version = "1",
+                        Description = "Through this API you can access the books.",
                         Contact = new Microsoft.OpenApi.Models.OpenApiContact()
                         {
                             Email = "derekvenom@gmail.com",
@@ -135,10 +154,14 @@ namespace Library.API
 
             app.UseSwaggerUI(setupAction =>     //Adds UI using the generateed OpenAPI Specification
             {
+                setupAction.DefaultModelsExpandDepth(-1);           //Hides all the Schemas
                 setupAction.SwaggerEndpoint(
-                    "/swagger/LibraryOpenAPISpecification/swagger.json",        //Endpoint where the Specification is generated
-                    "Library API");
-                setupAction.RoutePrefix = "";
+                    "/swagger/LibraryOpenAPISpecificationAuthors/swagger.json",        //Endpoint where the Specification is generated for Authors
+                    "Library API (Authors)");
+                setupAction.SwaggerEndpoint(
+                    "/swagger/LibraryOpenAPISpecificationBooks/swagger.json",        //Endpoint where the Specification is generated for Books
+                    "Library API (Books)");
+                setupAction.RoutePrefix = "";       //This Sets the Path at which the Swagger UI will be available. We have set it at the Index of the App.
             });
 
             app.UseStaticFiles();
