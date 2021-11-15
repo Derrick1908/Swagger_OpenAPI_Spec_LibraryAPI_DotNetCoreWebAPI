@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 namespace Library.API.Controllers
 {
     [Produces("application/json","application/xml")]        //This Overwrites any Defaults set at the Startup Level.
-    [Route("api/authors/{authorId}/books")]
-    [ApiExplorerSettings(GroupName = "LibraryOpenAPISpecificationBooks")]
+    [Route("api/v{version:apiVersion}/authors/{authorId}/books")]
+    //[Route("api/v1.0/authors/{authorId}/books")]                    //This was added at the Start when it was difficult to differentiate the Requests for the Swagger Doc API Sepcification
     [ApiController]   
     public class BooksController : ControllerBase
     { 

@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,15 +90,34 @@ namespace Library.API
 
             services.AddAutoMapper();
 
+            services.AddVersionedApiExplorer(setupAction => 
+            {
+                setupAction.GroupNameFormat = "'v'VV";            
+            });
+            
+            services.AddApiVersioning(setupAction =>
+            {
+                setupAction.AssumeDefaultVersionWhenUnspecified = true;
+                setupAction.DefaultApiVersion = new ApiVersion(1, 0);
+                setupAction.ReportApiVersions = true;
+
+                //setupAction.ApiVersionReader = new HeaderApiVersionReader("api-version");
+                //setupAction.ApiVersionReader = new MediaTypeApiVersionReader();
+            });
+
+            var apiVersionDescriptionProvider = services.BuildServiceProvider().GetService<IApiVersionDescriptionProvider>();
+
             services.AddSwaggerGen(setupAction =>
             {
-                //The Open API Specification has been split into Two OpenAPI Specifications one for the Authors and one for the Books
-                setupAction.SwaggerDoc("LibraryOpenAPISpecificationAuthors",
-                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the Authors API Specification
+                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)       //Lopps through all the Defined Versions and accordingly creates a Swagger Document for each Version
+                {
+                    setupAction.SwaggerDoc(
+                        $"LibraryOpenAPISpecification{description.GroupName}",
+                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the API
                     {
-                        Title = "Library API (Authors)",
-                        Version = "1",
-                        Description = "Through this API you can access the authors.",
+                        Title = "Library API",
+                        Version = description.ApiVersion.ToString(),
+                        Description = "Through this API you can access authors and their books.",
                         Contact = new Microsoft.OpenApi.Models.OpenApiContact()
                         {
                             Email = "derekvenom@gmail.com",
@@ -108,25 +130,28 @@ namespace Library.API
                             Url = new Uri("https://opensource.org/licenses/MIT")
                         }
                     });
-                setupAction.SwaggerDoc("LibraryOpenAPISpecificationBooks",
-                    new Microsoft.OpenApi.Models.OpenApiInfo()              //Adds General Info for the Books API Specification
-                    {
-                        Title = "Library API (Books)",
-                        Version = "1",
-                        Description = "Through this API you can access the books.",
-                        Contact = new Microsoft.OpenApi.Models.OpenApiContact()
-                        {
-                            Email = "derekvenom@gmail.com",
-                            Name = "Derrick Nazareth",
-                            Url = new Uri("https://www.twitter.com/derekvenom")
-                        },
-                        License = new Microsoft.OpenApi.Models.OpenApiLicense()
-                        {
-                            Name = "MIT License",
-                            Url = new Uri("https://opensource.org/licenses/MIT")
-                        }
-                    });
+                }
 
+                setupAction.DocInclusionPredicate((documentName, apiDescription) =>             //This Part is responsible for Inclduing Methods of the Controllers under the respective Versions
+                {
+                   var actionApiVersionModel = apiDescription.ActionDescriptor                 //Gets the applicable Version for each Action Method i.e. to which Version it belongs.
+                    .GetApiVersionModel(ApiVersionMapping.Explicit | ApiVersionMapping.Implicit);       //Explicit meaning defined explicitly on the Controller or Implicitly through Default Version
+                
+                   if (actionApiVersionModel == null)
+                   {
+                        return true;
+                   }
+
+                   if (actionApiVersionModel.DeclaredApiVersions.Any())                             //If there are any Declared API Versions then we construct a Corresponding Document Specification
+                   {
+                        return actionApiVersionModel.DeclaredApiVersions.Any(v =>
+                       $"LibraryOpenAPISpecificationv{v.ToString()}" == documentName);
+                   }
+
+                   return actionApiVersionModel.ImplementedApiVersions.Any(v =>                      //Similar;y If there are any Implemented API Versions then we construct a Corresponding Document Specification
+                          $"LibraryOpenAPISpecificationv{v.ToString()}" == documentName);
+                
+                });
                 var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFile);
 
@@ -135,7 +160,7 @@ namespace Library.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider apiVersionDescriptionProvider)
         {
             if (env.IsDevelopment())
             {
@@ -154,14 +179,23 @@ namespace Library.API
 
             app.UseSwaggerUI(setupAction =>     //Adds UI using the generateed OpenAPI Specification
             {
-                setupAction.DefaultModelsExpandDepth(-1);           //Hides all the Schemas
-                setupAction.SwaggerEndpoint(
-                    "/swagger/LibraryOpenAPISpecificationAuthors/swagger.json",        //Endpoint where the Specification is generated for Authors
-                    "Library API (Authors)");
-                setupAction.SwaggerEndpoint(
-                    "/swagger/LibraryOpenAPISpecificationBooks/swagger.json",        //Endpoint where the Specification is generated for Books
-                    "Library API (Books)");
-                setupAction.RoutePrefix = "";       //This Sets the Path at which the Swagger UI will be available. We have set it at the Index of the App.
+                setupAction.RoutePrefix = "";                                   //This Sets the Path at which the Swagger UI will be available. We have set it at the Index of the App.
+                
+                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)           //Lopps through all the Defined Versions and accordingly creates a Swagger Endpoint for each Version
+                {
+                    setupAction.SwaggerEndpoint($"/swagger/" +
+                        $"LibraryOpenAPISpecification{description.GroupName}/swagger.json",
+                        description.GroupName.ToUpperInvariant());
+                }
+                
+                
+                //setupAction.SwaggerEndpoint(
+                //    "/swagger/LibraryOpenAPISpecification/swagger.json",        //Endpoint where the Specification is generated
+                //    "Library API");
+                
+                setupAction.DefaultModelExpandDepth(2);
+                setupAction.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Model);
+                //setupAction.DefaultModelsExpandDepth(-1);                       //Hides all the Schemas
             });
 
             app.UseStaticFiles();

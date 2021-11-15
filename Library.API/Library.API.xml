@@ -48,6 +48,13 @@
             <response code="200">Returns the Updated Author</response>
             Note that the Backslash Character '\' -> is used for New Line
         </member>
+        <member name="M:Library.API.Controllers.AuthorsControllerV2.GetAuthors">
+            <summary>
+            Gets a List of Authors (V2)
+            </summary>
+            <returns>An Action Result of Type IEnumerable of Author</returns>
+            <response code="200">Returns the List of Authors</response>
+        </member>
         <member name="M:Library.API.Controllers.BooksController.GetBooks(System.Guid)">
             <summary>
             Gets the Books for a Specific Author
