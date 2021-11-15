@@ -1,18 +1,23 @@
 ﻿using AutoMapper;
+using Library.API.Authentication;
 using Library.API.Contexts;
 using Library.API.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -38,6 +43,9 @@ namespace Library.API
                 setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
                 setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status406NotAcceptable));
                 setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status500InternalServerError));
+                setupAction.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status401Unauthorized));
+
+                setupAction.Filters.Add(new AuthorizeFilter());         //Adding Authorize Attribute for all Controllers by Default.
 
                 setupAction.ReturnHttpNotAcceptable = true;     //This is used to return an Error incase the Accept Header Type in Response is not supported
 
@@ -94,7 +102,10 @@ namespace Library.API
             {
                 setupAction.GroupNameFormat = "'v'VV";            
             });
-            
+
+            services.AddAuthentication("Basic")                     //Adds the Authorization Scheme to the Basic Authorization Service. Note that we have to add Various Security Schemes and then Add a Security to apply those schemes to your API
+                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null);
+
             services.AddApiVersioning(setupAction =>
             {
                 setupAction.AssumeDefaultVersionWhenUnspecified = true;
@@ -109,7 +120,7 @@ namespace Library.API
 
             services.AddSwaggerGen(setupAction =>
             {
-                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)       //Lopps through all the Defined Versions and accordingly creates a Swagger Document for each Version
+                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)       //Loops through all the Defined Versions and accordingly creates a Swagger Document for each Version
                 {
                     setupAction.SwaggerDoc(
                         $"LibraryOpenAPISpecification{description.GroupName}",
@@ -131,6 +142,25 @@ namespace Library.API
                         }
                     });
                 }
+
+                setupAction.AddSecurityDefinition("basicAuth", new OpenApiSecurityScheme()
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "basic",
+                    Description = "Input your Username and Password to access this API"
+                });     //Adds the Security Definition to the API based on the Schemes.
+
+
+                setupAction.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { new OpenApiSecurityScheme
+                        { 
+                            Reference = new OpenApiReference  {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "basicAuth" }
+                        },new List<string>() 
+                    }
+                });
 
                 setupAction.DocInclusionPredicate((documentName, apiDescription) =>             //This Part is responsible for Inclduing Methods of the Controllers under the respective Versions
                 {
@@ -181,7 +211,7 @@ namespace Library.API
             {
                 setupAction.RoutePrefix = "";                                   //This Sets the Path at which the Swagger UI will be available. We have set it at the Index of the App.
                 
-                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)           //Lopps through all the Defined Versions and accordingly creates a Swagger Endpoint for each Version
+                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)           //Loops through all the Defined Versions and accordingly creates a Swagger Endpoint for each Version
                 {
                     setupAction.SwaggerEndpoint($"/swagger/" +
                         $"LibraryOpenAPISpecification{description.GroupName}/swagger.json",
@@ -199,6 +229,8 @@ namespace Library.API
             });
 
             app.UseStaticFiles();
+
+            app.UseAuthentication();            //Enables Authentication. Should be used before UseMVC() so that before routing takes place, Authentication is checked.
 
             app.UseMvc();
         }
